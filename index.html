@@ -11,6 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap"
       rel="stylesheet"
     />
+    <link rel="preload" as="image" href="./bg_image.png" />
 
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -126,10 +127,11 @@
         break-inside: avoid;
       }
       /* Reduced motion */
+      /* Reduce-motion: no zoom animation, start at final size */
       @media (prefers-reduced-motion: reduce) {
-        * {
-          animation: none !important;
+        header[role="banner"] {
           transition: none !important;
+          background-size: 100% !important;
         }
       }
 
@@ -146,11 +148,31 @@
         animation-name: ribbonMarquee;
         animation-timing-function: linear;
         animation-iteration-count: infinite;
+        animation-duration: var(--marquee-duration, 12s);
       }
       @media (prefers-reduced-motion: reduce) {
         .marquee-track {
           animation: none !important;
+          text-align: center;
         }
+      }
+      /* Hero background layer animation (fade + subtle zoom) */
+      .hero-bg {
+        transition: opacity 1600ms ease-out, transform 4000ms ease-out;
+        will-change: opacity, transform;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hero-bg {
+          transition: none !important;
+          opacity: 1 !important;
+          transform: scale(1) !important;
+        }
+      }
+      /* Make hero overlays slightly larger so they cover edges while bg zooms */
+      .hero-overlay {
+        transform: scale(1.06);
+        transform-origin: center;
+        will-change: transform;
       }
     </style>
   </head>
@@ -208,23 +230,30 @@
 
     <!-- Hero -->
     <header
-      class="relative pt-14 sm:pt-20 pb-10 sm:pb-14 bg-cover bg-center"
+      class="relative pt-14 sm:pt-20 pb-10 sm:pb-14 overflow-hidden"
       role="banner"
-      style="background-image: url('./bg_image.png')"
     >
-      <div aria-hidden="true" class="absolute inset-0 bg-black/60 z-0"></div>
       <div
         aria-hidden="true"
-        class="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent via-bg/40 to-bg z-[5]"
+        class="hero-bg absolute inset-0 bg-center bg-no-repeat bg-cover opacity-0"
+        style="background-image: url('./bg_image.png'); transform: scale(1.08)"
       ></div>
-      <div class="relative z-10 max-w-6xl mx-auto px-12">
+      <div
+        aria-hidden="true"
+        class="hero-overlay absolute inset-0 bg-black/60 z-10"
+      ></div>
+      <div
+        aria-hidden="true"
+        class="hero-overlay pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent via-bg/40 to-bg z-20"
+      ></div>
+      <div class="relative z-30 max-w-6xl mx-auto px-12">
         <span
           class="inline-block text-[11px] sm:text-xs font-bold uppercase tracking-[.18em] text-black bg-gradient-to-r from-gold to-yellow-200 px-2.5 py-1 rounded-full shadow-gold"
           aria-label="Format badge"
           >A Two-Player Commander Variant</span
         >
         <h1
-          class="mt-4 text-4xl sm:text-6xl lg:text-7xl font-extrabold leading-tight tracking-tight animate-pulseSoft"
+          class="mt-4 text-4xl sm:text-6xl lg:text-7xl font-extrabold leading-tight tracking-tight"
         >
           Conquer the Cosmos. Bend Fate.
           <span
@@ -586,7 +615,9 @@
 
     <!-- Ribbon Marquee (between body and footer) -->
     <section id="ribbon" class="mt-10 mb-8 overflow-x-clip">
-      <div class="relative w-screen -mx-4 sm:mx-0 rotate-[-1.2deg]">
+      <div
+        class="relative w-screen -mx-4 sm:mx-0 rotate-[-1.1deg] overflow-hidden"
+      >
         <div
           id="marquee-wrap"
           class="overflow-hidden border-t border-b border-t-purple-400/30 border-b-purple-400/30 bg-gradient-to-r from-[#0d1022] via-[#111532] to-[#0d1022] shadow-[0_8px_28px_rgba(0,0,0,.35)] py-3"
@@ -700,6 +731,30 @@
 
     <!-- Inline JS -->
     <script>
+      // Reveal hero only after the background image is ready (prevents flash on iOS Safari)
+      function initHeroReveal() {
+        const hero = document.querySelector('header[role="banner"]');
+        if (!hero) return;
+        const bg = hero.querySelector(".hero-bg");
+        if (!bg) return;
+
+        // Get src from inline style on the bg layer
+        const style = bg.getAttribute("style") || "";
+        const match = style.match(/url\(['"]?([^'")]+)['"]?\)/);
+        const src = match && match[1] ? match[1] : "./bg_image.png";
+
+        const img = new Image();
+        function start() {
+          // Fade in and settle zoom (scale 1.08 -> 1.00)
+          bg.style.opacity = "1";
+          bg.style.transform = "scale(1)";
+        }
+        img.onload = start;
+        img.onerror = start; // proceed even if preload fails
+        img.src = src;
+        if (img.complete) start();
+      }
+
       function scrollToId(id) {
         const el = document.getElementById(id);
         if (el) {
@@ -746,6 +801,8 @@
           : 100;
       }
 
+      // Ensure a default duration so Safari starts the animation before recalculation
+      document.documentElement.style.setProperty("--marquee-duration", "12s");
       const wrap = document.getElementById("marquee-wrap");
       const track = document.getElementById("marquee-track");
       const reduceMotion =
@@ -797,7 +854,12 @@
       function setDuration() {
         const halfWidth = track.scrollWidth / 2; // distance we animate (-50%)
         const duration = Math.max(halfWidth / getSpeed(), 10); // seconds
+        // Set both inline style and CSS variable for wider browser support
         track.style.animationDuration = duration + "s";
+        document.documentElement.style.setProperty(
+          "--marquee-duration",
+          duration + "s"
+        );
       }
 
       // Rotate order each time the animation completes one full cycle
@@ -853,6 +915,11 @@
       }
       window.addEventListener("resize", handleResize);
       window.addEventListener("orientationchange", handleResize);
+      // Recompute after full load and font rendering (Safari fix)
+      window.addEventListener("load", handleResize);
+      document.fonts &&
+        document.fonts.ready &&
+        document.fonts.ready.then(handleResize).catch(() => {});
 
       /* ---- Make text after "•" in headings regular + italic ---- */
       function stylizeBulletHeadings(root = document) {
@@ -885,6 +952,7 @@
       }
 
       function onReady() {
+        initHeroReveal();
         initRibbon();
         stylizeBulletHeadings(document);
         // also apply to printable rules container (so PDF inherits styles)
