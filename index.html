@@ -217,7 +217,7 @@
         aria-hidden="true"
         class="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent via-bg/40 to-bg z-[5]"
       ></div>
-      <div class="relative z-10 max-w-6xl mx-auto px-4">
+      <div class="relative z-10 max-w-6xl mx-auto px-12">
         <span
           class="inline-block text-[11px] sm:text-xs font-bold uppercase tracking-[.18em] text-black bg-gradient-to-r from-gold to-yellow-200 px-2.5 py-1 rounded-full shadow-gold"
           aria-label="Format badge"
@@ -586,24 +586,22 @@
 
     <!-- Ribbon Marquee (between body and footer) -->
     <section id="ribbon" class="mt-10 mb-8 overflow-x-clip">
-      <div class="max-w-6xl mx-auto px-4">
-        <div class="relative w-screen -mx-4 sm:mx-0 rotate-[-1.2deg]">
+      <div class="relative w-screen -mx-4 sm:mx-0 rotate-[-1.2deg]">
+        <div
+          id="marquee-wrap"
+          class="overflow-hidden border-t border-b border-t-purple-400/30 border-b-purple-400/30 bg-gradient-to-r from-[#0d1022] via-[#111532] to-[#0d1022] shadow-[0_8px_28px_rgba(0,0,0,.35)] py-3"
+          role="region"
+          aria-label="Lore ribbon"
+          tabindex="0"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <!-- Track that scrolls; content is injected by JS -->
           <div
-            id="marquee-wrap"
-            class="overflow-hidden rounded-2xl border border-purple-400/30 bg-gradient-to-r from-[#0d1022] via-[#111532] to-[#0d1022] shadow-[0_8px_28px_rgba(0,0,0,.35)] py-3"
-            role="region"
-            aria-label="Lore ribbon"
-            tabindex="0"
-            aria-live="polite"
-            aria-atomic="true"
+            id="marquee-track"
+            class="marquee-track flex items-center gap-8 sm:gap-12 whitespace-nowrap will-change-transform"
           >
-            <!-- Track that scrolls; content is injected by JS -->
-            <div
-              id="marquee-track"
-              class="marquee-track flex items-center gap-8 sm:gap-12 whitespace-nowrap will-change-transform"
-            >
-              <!-- JS will inject repeated phrases here -->
-            </div>
+            <!-- JS will inject repeated phrases here -->
           </div>
         </div>
       </div>
