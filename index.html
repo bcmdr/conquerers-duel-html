@@ -205,7 +205,7 @@
               onclick="scrollToId('rules')"
               aria-label="Jump to Rules to start playing"
             >
-              Let's Do It
+              Rules
             </button>
             <button
               type="button"
@@ -213,7 +213,7 @@
               onclick="scrollToId('lore')"
               aria-label="Jump to Lore to learn more about the variant"
             >
-              Keep Reading
+              Lore
             </button>
             <button
               type="button"
@@ -221,7 +221,7 @@
               onclick="downloadPDF()"
               aria-label="Download a printable PDF of the rules"
             >
-              Download Rules (PDF)
+              Download (PDF)
             </button>
           </div>
         </nav>
@@ -278,7 +278,7 @@
             onclick="scrollToId('rules')"
             aria-label="Scroll to Rules section"
           >
-            Let's Do It
+            Learn to Play
           </button>
           <button
             type="button"
@@ -286,7 +286,7 @@
             onclick="scrollToId('lore')"
             aria-label="Scroll to Lore section"
           >
-            Keep Reading
+            Read the Story
           </button>
           <button
             type="button"
@@ -343,7 +343,7 @@
             onclick="downloadPDF()"
             aria-describedby="pdf-desc"
           >
-            Download Rules (PDF)
+            Download (PDF)
           </button>
         </div>
         <p id="pdf-desc" class="sr-only">
@@ -601,7 +601,7 @@
             href="#rules"
             class="px-8 py-3 bg-gradient-to-tr from-blue-600 to-purple-600 hover:-translate-y-0.5 transition rounded-lg font-bold text-white shadow-glow focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400/40"
           >
-            Let's Do It
+            Play Now
           </a>
           <a
             href="#lore"
@@ -794,11 +794,8 @@
       ];
 
       function getSpeed() {
-        // Slower on small screens for readability
-        return window.matchMedia &&
-          window.matchMedia("(max-width: 640px)").matches
-          ? 60
-          : 100;
+        // Same speed on all devices for consistent feel
+        return 120; // px per second
       }
 
       // Ensure a default duration so Safari starts the animation before recalculation
@@ -853,7 +850,7 @@
       // Set animation duration based on content width for consistent speed
       function setDuration() {
         const halfWidth = track.scrollWidth / 2; // distance we animate (-50%)
-        const duration = Math.max(halfWidth / getSpeed(), 10); // seconds
+        const duration = Math.max(halfWidth / getSpeed(), 8); // seconds
         // Set both inline style and CSS variable for wider browser support
         track.style.animationDuration = duration + "s";
         document.documentElement.style.setProperty(
