@@ -585,11 +585,9 @@
     </section>
 
     <!-- Ribbon Marquee (between body and footer) -->
-    <section id="ribbon" class="mt-10 mb-8">
+    <section id="ribbon" class="mt-10 mb-8 overflow-x-clip">
       <div class="max-w-6xl mx-auto px-4">
-        <div
-          class="relative left-1/2 -translate-x-1/2 w-[100vw] rotate-[-1.2deg]"
-        >
+        <div class="relative w-screen -mx-4 sm:mx-0 rotate-[-1.2deg]">
           <div
             id="marquee-wrap"
             class="overflow-hidden rounded-2xl border border-purple-400/30 bg-gradient-to-r from-[#0d1022] via-[#111532] to-[#0d1022] shadow-[0_8px_28px_rgba(0,0,0,.35)] py-3"
@@ -602,7 +600,7 @@
             <!-- Track that scrolls; content is injected by JS -->
             <div
               id="marquee-track"
-              class="marquee-track flex items-center gap-12 whitespace-nowrap will-change-transform"
+              class="marquee-track flex items-center gap-8 sm:gap-12 whitespace-nowrap will-change-transform"
             >
               <!-- JS will inject repeated phrases here -->
             </div>
@@ -742,7 +740,13 @@
         "Outwit. Outmaneuver. Outlast.",
       ];
 
-      const SPEED_PX_PER_SEC = 100; // adjust to taste
+      function getSpeed() {
+        // Slower on small screens for readability
+        return window.matchMedia &&
+          window.matchMedia("(max-width: 640px)").matches
+          ? 60
+          : 100;
+      }
 
       const wrap = document.getElementById("marquee-wrap");
       const track = document.getElementById("marquee-track");
@@ -794,7 +798,7 @@
       // Set animation duration based on content width for consistent speed
       function setDuration() {
         const halfWidth = track.scrollWidth / 2; // distance we animate (-50%)
-        const duration = Math.max(halfWidth / SPEED_PX_PER_SEC, 8); // seconds
+        const duration = Math.max(halfWidth / getSpeed(), 10); // seconds
         track.style.animationDuration = duration + "s";
       }
 
@@ -835,7 +839,22 @@
         wrap.addEventListener("mouseleave", resume);
         wrap.addEventListener("focusin", pause);
         wrap.addEventListener("focusout", resume);
+        // Touch pause/resume for mobile
+        wrap.addEventListener("touchstart", pause, { passive: true });
+        wrap.addEventListener("touchend", resume, { passive: true });
       }
+
+      // Recompute marquee on resize/orientation
+      let resizeTimer;
+      function handleResize() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          buildTrack();
+          setDuration();
+        }, 150);
+      }
+      window.addEventListener("resize", handleResize);
+      window.addEventListener("orientationchange", handleResize);
 
       /* ---- Make text after "•" in headings regular + italic ---- */
       function stylizeBulletHeadings(root = document) {
