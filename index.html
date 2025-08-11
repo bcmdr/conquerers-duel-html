@@ -174,6 +174,72 @@
         transform-origin: center;
         will-change: transform;
       }
+
+      /* ------------ Print-only view ------------ */
+      @media print {
+        /* Page setup */
+        @page {
+          size: A4;
+          margin: 12mm 12mm 16mm 12mm;
+        }
+        html,
+        body {
+          background: #ffffff !important;
+          color: #0b0b0f !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        /* Hide marketing / interactive UI */
+        .sticky,
+        header[role="banner"],
+        #bottom-hero,
+        #ribbon,
+        footer,
+        hr[role="separator"],
+        .skip-link {
+          display: none !important;
+        }
+
+        /* Hide app body and show printable rules */
+        #main {
+          display: none !important;
+        }
+        #print-rules {
+          display: block !important;
+          width: 794px !important; /* A4 content width at 96dpi */
+          margin: 0 auto !important;
+          background: #ffffff !important;
+          color: #0b0b0f !important;
+        }
+
+        /* Tidy spacing for headings and lists in print */
+        #print-rules h1 {
+          font-size: 28px !important;
+          margin: 0 0 12px !important;
+          font-weight: 900 !important;
+        }
+        #print-rules h2 {
+          font-size: 18px !important;
+          margin: 16px 0 8px !important;
+          font-weight: 800 !important;
+        }
+        #print-rules p {
+          margin: 0 0 10px !important;
+        }
+        #print-rules ul {
+          margin: 0 0 10px 20px !important;
+          padding: 0 !important;
+        }
+
+        /* Avoid awkward page breaks */
+        #print-rules h1,
+        #print-rules h2,
+        #print-rules .block {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+      }
     </style>
   </head>
   <body class="bg-bg text-ink selection:bg-purple-600/30 selection:text-white">
@@ -770,25 +836,8 @@
       }
 
       function downloadPDF() {
-        const el = document.getElementById("print-rules");
-        el.classList.remove("hidden"); // ensure visible to measure
-
-        const opt = {
-          margin: [10, 10, 12, 10],
-          filename: "Conquerers-Duel_Rules.pdf",
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, backgroundColor: "#ffffff", useCORS: true },
-          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-          pagebreak: { mode: ["css", "legacy"] },
-        };
-
-        html2pdf()
-          .set(opt)
-          .from(el)
-          .save()
-          .then(() => {
-            el.classList.add("hidden");
-          });
+        // Use the built-in print dialog; CSS will switch to print-only view
+        window.print();
       }
 
       /* -------- Full-width angled ribbon marquee -------- */
