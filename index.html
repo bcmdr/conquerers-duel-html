@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Conquerer’s Duel • A Two-Player Commander Variant</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui"] },
+            colors: {
+              ink: "#ffffff",
+              bg: "#0b0b0f",
+              ember: "#e11d48",
+              blood: "#991b1b",
+              gold: "#f5c84b",
+              aurum: "#facc15",
+            },
+            boxShadow: {
+              glow: "0 0 40px rgba(225,29,72,.25)",
+              gold: "0 0 36px rgba(245,200,75,.35)",
+            },
+            keyframes: {
+              float: {
+                "0%,100%": { transform: "translateY(0)" },
+                "50%": { transform: "translateY(-4px)" },
+              },
+              glow: { "0%,100%": { opacity: 0.92 }, "50%": { opacity: 1 } },
+              pulseSoft: {
+                "0%,100%": { transform: "scale(1)" },
+                "50%": { transform: "scale(1.01)" },
+              },
+            },
+            animation: {
+              float: "float 6s ease-in-out infinite",
+              glow: "glow 5s ease-in-out infinite",
+              pulseSoft: "pulseSoft 5s ease-in-out infinite",
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      /* Style for header text after a bullet */
+      .after-bullet {
+        font-weight: 400; /* lighter */
+        font-style: normal; /* no italics */
+      }
+      body {
+        background: radial-gradient(
+            1200px 800px at 85% -10%,
+            rgba(37, 99, 235, 0.22),
+            transparent 60%
+          ),
+          radial-gradient(
+            1000px 700px at -10% 30%,
+            rgba(124, 58, 237, 0.18),
+            transparent 60%
+          ),
+          linear-gradient(180deg, #0b0b0f, #0b0b0f);
+        color: #fff;
+        font-family: Inter, ui-sans-serif, system-ui;
+      }
+      /* Skip link */
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+        top: auto;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      }
+      .skip-link:focus {
+        position: fixed;
+        left: 16px;
+        top: 12px;
+        width: auto;
+        height: auto;
+        padding: 10px 14px;
+        background: #ffffff;
+        color: #000;
+        border-radius: 10px;
+        z-index: 1000;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+      /* Printable area — fixed A4 width (~794px @96dpi) */
+      #print-rules {
+        width: 794px;
+        background: #ffffff;
+        color: #0b0b0f;
+        padding: 28px 28px 24px;
+        font-family: Inter, Arial, sans-serif;
+      }
+      #print-rules h1 {
+        font-size: 28px;
+        margin: 0 0 10px;
+        font-weight: 900;
+      }
+      #print-rules h2 {
+        font-size: 18px;
+        margin: 16px 0 6px;
+        font-weight: 800;
+      }
+      #print-rules p {
+        margin: 0 0 10px;
+      }
+      #print-rules ul {
+        margin: 0 0 10px 20px;
+      }
+      #print-rules h1,
+      #print-rules h2,
+      #print-rules .block {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      /* Reduced motion */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+
+      /* Seamless marquee: track contains duplicated content, slides -50% of its own width */
+      @keyframes ribbonMarquee {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+      .marquee-track {
+        animation-name: ribbonMarquee;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .marquee-track {
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-bg text-ink selection:bg-purple-600/30 selection:text-white">
+    <a href="#main" class="skip-link">Skip to main content</a>
+
+    <!-- Sticky Nav -->
+    <div
+      class="sticky top-0 z-50 bg-bg/85 backdrop-blur-md border-b border-white/10"
+      role="navigation"
+      aria-label="Primary"
+    >
+      <div class="max-w-6xl mx-auto px-4">
+        <nav class="flex items-center justify-between py-3">
+          <div
+            class="flex items-center gap-3 font-black tracking-wide"
+            aria-label="Site brand"
+          >
+            <span
+              class="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-purple-600 to-orange-500 shadow-gold animate-glow"
+              aria-hidden="true"
+            ></span>
+            <span class="text-sm sm:text-base mr-2">Conquerer’s Duel</span>
+          </div>
+          <div class="flex items-center gap-2 sm:gap-3">
+            <!-- ORDER: Let's Do It, Keep Reading, Download -->
+            <button
+              type="button"
+              class="px-3.5 sm:px-4 py-2 rounded-xl font-extrabold text-white bg-gradient-to-tr from-blue-600 to-purple-600 shadow-glow hover:-translate-y-0.5 transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400/40"
+              onclick="scrollToId('rules')"
+              aria-label="Jump to Rules to start playing"
+            >
+              Let's Do It
+            </button>
+            <button
+              type="button"
+              class="px-3.5 sm:px-4 py-2 rounded-xl font-extrabold bg-white text-black border border-white/20 hover:-translate-y-0.5 transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400/40"
+              onclick="scrollToId('lore')"
+              aria-label="Jump to Lore to learn more about the variant"
+            >
+              Keep Reading
+            </button>
+            <button
+              type="button"
+              class="hidden sm:inline-flex px-3.5 sm:px-4 py-2 rounded-xl font-extrabold text-black bg-gradient-to-tr from-orange-500 to-orange-400 shadow-gold hover:-translate-y-0.5 transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400/40"
+              onclick="downloadPDF()"
+              aria-label="Download a printable PDF of the rules"
+            >
+              Download Rules (PDF)
+            </button>
+          </div>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <header
+      class="relative pt-14 sm:pt-20 pb-10 sm:pb-14 bg-cover bg-center"
+      role="banner"
+      style="background-image: url('./bg_image.png')"
+    >
+      <div aria-hidden="true" class="absolute inset-0 bg-black/60 z-0"></div>
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent via-bg/40 to-bg z-[5]"
+      ></div>
+      <div class="relative z-10 max-w-6xl mx-auto px-4">
+        <span
+          class="inline-block text-[11px] sm:text-xs font-bold uppercase tracking-[.18em] text-black bg-gradient-to-r from-gold to-yellow-200 px-2.5 py-1 rounded-full shadow-gold"
+          aria-label="Format badge"
+          >A Two-Player Commander Variant</span
+        >
+        <h1
+          class="mt-4 text-4xl sm:text-6xl lg:text-7xl font-extrabold leading-tight tracking-tight animate-pulseSoft"
+        >
+          Conquer the Cosmos. Bend Fate.
+          <span
+            class="bg-gradient-to-r from-gold to-white bg-clip-text text-transparent"
+            >Win Eternity.</span
+          >
+        </h1>
+        <p class="mt-5 text-base sm:text-lg text-slate-200/90 max-w-2xl">
+          The gods are watching. The arena tilts for spectacle: visions for the
+          lost, vigor for the wounded, rewards for the bold. Begin with a divine
+          <em>Blessing</em> you can cast from exile at the perfect moment.
+          <span class="font-bold">The race is on.</span>
+        </p>
+        <div
+          class="mt-6 flex flex-wrap items-center gap-3"
+          role="group"
+          aria-label="Hero quick actions"
+        >
+          <button
+            type="button"
+            class="px-5 py-3 rounded-xl font-extrabold text-white bg-gradient-to-tr from-blue-600 to-purple-600 shadow-glow hover:-translate-y-0.5 transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400/40"
+            onclick="scrollToId('rules')"
+            aria-label="Scroll to Rules section"
+          >
+            Let's Do It
+          </button>
+          <button
+            type="button"
+            class="px-5 py-3 rounded-xl font-extrabold bg-white text-black border border-white/20 hover:-translate-y-0.5 transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400/40"
+            onclick="scrollToId('lore')"
+            aria-label="Scroll to Lore section"
+          >
+            Keep Reading
+          </button>
+          <button
+            type="button"
+            class="sm:hidden px-5 py-3 rounded-xl font-extrabold text-black bg-gradient-to-tr from-orange-500 to-orange-400 hover:-translate-y-0.5 transition shadow-gold focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400/40"
+            onclick="downloadPDF()"
+            aria-label="Download printable PDF of the rules"
+          >
+            Download Rules (PDF)
+          </button>
+        </div>
+
+        <div
+          class="mt-8 rounded-2xl border border-white/10 bg-gradient-to-b from-purple-600/15 to-orange-500/10 p-4 backdrop-blur-sm max-w-2xl shadow-glow text-sm text-slate-200"
+          role="note"
+          aria-label="Quick start note"
+        >
+          <strong class="text-white">Quick Start:</strong> 100-card Commander
+          decks. 40 life. Normal rules, with notable additions.
+          <a
+            href="#"
+            onclick="downloadPDF(); return false;"
+            class="text-gold font-extrabold underline decoration-2 underline-offset-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400/40"
+            ><em>Download Rules (PDF)</em></a
+          >
+        </div>
+      </div>
+    </header>
+
+    <!-- Content Grid -->
+
+    <main
+      id="main"
+      class="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 my-16 lg:my-20"
+      role="main"
+    >
+      <!-- Rules -->
+      <section
+        id="rules"
+        class="scroll-mt-28 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#141318,#0f0f15)] p-6 lg:p-7 shadow-xl animate-float"
+        aria-labelledby="rules-heading"
+      >
+        <div
+          class="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
+          <h2
+            id="rules-heading"
+            class="text-2xl sm:text-3xl font-black tracking-tight"
+          >
+            Rules • Play Now
+          </h2>
+          <button
+            type="button"
+            class="px-4 py-2 rounded-xl font-extrabold text-black bg-gradient-to-tr from-orange-500 to-orange-400 shadow-gold hover:-translate-y-0.5 transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400/40"
+            onclick="downloadPDF()"
+            aria-describedby="pdf-desc"
+          >
+            Download Rules (PDF)
+          </button>
+        </div>
+        <p id="pdf-desc" class="sr-only">
+          Downloads a high-contrast printable PDF of the rules.
+        </p>
+
+        <div id="rules-content" class="mt-6 space-y-5">
+          <div class="rounded-xl border border-white/10 bg-[#1a1722] p-4">
+            <h3
+              class="text-lg font-extrabold border-l-4 border-ember pl-3 mb-2"
+            >
+              Rite of Selection • The Blessing (Pre-Game Step)
+            </h3>
+            <ul class="list-disc pl-5 space-y-1">
+              <li>
+                <strong
+                  >At the start of the game, before drawing opening hands or
+                  mulligans</strong
+                >, each player searches their library for any card and
+                <strong>exiles it face down as their Blessing</strong>, then
+                shuffles. (Only its owner may look at it.)
+              </li>
+              <li>
+                You may <strong>cast your Blessing from exile</strong> by paying
+                its normal costs, only at a time you could normally cast it. It
+                remains in exile until cast.
+              </li>
+            </ul>
+          </div>
+
+          <div class="rounded-xl border border-white/10 bg-[#1a1722] p-4">
+            <h3
+              class="text-lg font-extrabold border-l-4 border-ember pl-3 mb-2"
+            >
+              The Omen Mulligan • Fate’s Opening
+            </h3>
+            <ul class="list-disc pl-5 space-y-1">
+              <li>First draw: <strong>Draw 10, discard down to 7</strong>.</li>
+              <li>
+                You may repeat this once for free (draw 10 → discard to 7).
+              </li>
+              <li>
+                Further mulligans: <strong>9 → 7</strong>, then
+                <strong>8 → 7</strong>, then <strong>7 → 7</strong> and keep.
+              </li>
+            </ul>
+          </div>
+
+          <div class="rounded-xl border border-white/10 bg-[#1a1722] p-4">
+            <h3
+              class="text-lg font-extrabold border-l-4 border-ember pl-3 mb-2"
+            >
+              Tides of Favor • Upkeep Augment
+            </h3>
+            <ul class="list-disc pl-5 space-y-1">
+              <li><strong>Behind on land?</strong> Scry 1.</li>
+              <li><strong>Behind on life?</strong> Draw a card.</li>
+              <li>
+                <strong>Behind on both?</strong> Scry 1, then draw a card.
+              </li>
+            </ul>
+          </div>
+
+          <div class="rounded-xl border border-white/10 bg-[#1a1722] p-4">
+            <h3
+              class="text-lg font-extrabold border-l-4 border-ember pl-3 mb-2"
+            >
+              First Blood • Lander Bounty
+            </h3>
+            <ul class="list-disc pl-5 space-y-1">
+              <li>
+                The first player to deal combat damage to an opponent creates a
+                <strong>Lander</strong> token.
+              </li>
+              <li class="text-slate-300 text-sm italic">
+                Lander • “2, <span class="font-bold">T</span>, Sacrifice this:
+                Search your library for a basic land card, put it onto the
+                battlefield tapped, then shuffle.”
+              </li>
+            </ul>
+          </div>
+
+          <div class="rounded-xl border border-white/10 bg-[#1a1722] p-4">
+            <h3
+              class="text-lg font-extrabold border-l-4 border-ember pl-3 mb-2"
+            >
+              Champion’s Recall • Taxless Recast
+            </h3>
+            <ul class="list-disc pl-5 space-y-1">
+              <li>
+                The first time you would pay <strong>commander tax</strong>,
+                ignore it. (Once per game.)
+              </li>
+            </ul>
+          </div>
+
+          <div class="rounded-xl border border-white/10 bg-[#1a1722] p-4">
+            <h3
+              class="text-lg font-extrabold border-l-4 border-ember pl-3 mb-2"
+            >
+              Victory
+            </h3>
+            <p>
+              Any standard Commander win condition. May the bold claim the favor
+              of eternity.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lore -->
+      <section
+        id="lore"
+        class="scroll-mt-28 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#141318,#0f0f15)] p-6 lg:p-7 shadow-xl"
+        aria-labelledby="lore-heading"
+      >
+        <h2
+          id="lore-heading"
+          class="text-2xl sm:text-3xl font-black tracking-tight"
+        >
+          Lore • Learn More
+        </h2>
+
+        <div class="mt-6 space-y-5 text-slate-200">
+          <div class="rounded-xl border border-white/10 bg-[#1a1722] p-4">
+            <div
+              class="text-[11px] sm:text-xs font-bold uppercase tracking-[.18em] text-purple-300/80 mb-1"
+            >
+              Spectacle of the Multiverse
+            </div>
+            <p>
+              Across the infinite planes, the greatest battles are not fought in
+              silence • they blaze like suns for all the Multiverse to witness.
+              The gods demand not just victory, but spectacle, shaping the flow
+              of fate itself to ensure the duel remains a masterpiece.
+              <strong
+                >Here, the rules of reality twist for the pleasure of unseen
+                powers, ensuring the story is as fierce as the warriors who live
+                it.</strong
+              >
+            </p>
+          </div>
+
+          <div class="rounded-xl border border-white/10 bg-[#1a1722] p-4">
+            <div
+              class="text-[11px] sm:text-xs font-bold uppercase tracking-[.18em] text-purple-300/80 mb-1"
+            >
+              Setbacks Become Story
+            </div>
+            <p>
+              When you stumble, the ground itself seems to rise to meet you;
+              when you falter in strength, unseen hands place new weapons within
+              your grasp. In the Conquerer’s Duel, weakness is never the end •
+              it is an opening act in a story the Multiverse refuses to let end
+              too soon.
+              <strong
+                >Every setback is crafted into drama, every rally a spark that
+                lights the heavens aflame.</strong
+              >
+            </p>
+          </div>
+
+          <div class="rounded-xl border border-white/10 bg-[#1a1722] p-4">
+            <div
+              class="text-[11px] sm:text-xs font-bold uppercase tracking-[.18em] text-purple-300/80 mb-1"
+            >
+              Whispers of the Blessing
+            </div>
+            <p>
+              Before the first card is drawn, fate whispers a promise into your
+              ear • a Blessing, chosen from the depths of your own arsenal and
+              hidden in exile for the moment that matters. Some use it to open
+              with overwhelming might; others keep it secret until the duel’s
+              final heartbeat.
+              <strong
+                >Your Blessing is not simply a card • it is destiny, waiting in
+                exile to rewrite the script of battle.</strong
+              >
+            </p>
+          </div>
+
+          <div class="rounded-xl border border-white/10 bg-[#1a1722] p-4">
+            <div
+              class="text-[11px] sm:text-xs font-bold uppercase tracking-[.18em] text-purple-300/80 mb-1"
+            >
+              First Blood, Further Shores
+            </div>
+            <p>
+              Strike the first blow, and the crowd roars. The Multiverse gifts
+              you a Lander • a shimmering artifact of boundless reach that draws
+              strength from distant worlds. Even when your champion falls, the
+              gods demand their return, unburdened by the taxes of mortality.
+              <strong
+                >No death is permanent when the gods crave an encore.</strong
+              >
+            </p>
+          </div>
+
+          <div class="rounded-xl border border-white/10 bg-[#1a1722] p-4">
+            <div
+              class="text-[11px] sm:text-xs font-bold uppercase tracking-[.18em] text-purple-300/80 mb-1"
+            >
+              Cunning Claims Eternity
+            </div>
+            <p>
+              In the end, it is not the strongest who claim eternity, but the
+              most cunning. The Conquerer’s Duel is a trial of mind, heart, and
+              spectacle, where outmaneuvering your foe is as vital as
+              overpowering them.
+              <strong
+                >Only those who can turn the gaze of the gods into their
+                greatest weapon will leave the arena as more than a victor •
+                they will leave as legend.</strong
+              >
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Reflective Closing Hero -->
+    <section
+      id="bottom-hero"
+      class="relative overflow-hidden text-white py-16 px-6 sm:px-12 text-center"
+      aria-label="Closing call to action"
+    >
+      <!-- Flipped background image layer -->
+      <div
+        aria-hidden="true"
+        class="absolute inset-0 bg-[url('./bg_image.png')] bg-cover bg-center -scale-x-100 opacity-80 will-change-transform"
+      ></div>
+
+      <!-- Cooler color treatment overlay -->
+      <div
+        aria-hidden="true"
+        class="absolute inset-0 bg-gradient-to-t from-bg via-purple-900/50 to-transparent"
+      ></div>
+
+      <!-- Top fade to separate from content above -->
+      <div
+        aria-hidden="true"
+        class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-bg/80 to-transparent"
+      ></div>
+
+      <!-- Center-aligned content -->
+      <div class="relative z-10 max-w-4xl mx-auto space-y-6">
+        <h2 class="text-4xl sm:text-5xl font-extrabold">Victory Awaits.</h2>
+        <p class="text-lg sm:text-xl text-gray-100/95">
+          You’ve weighed the rules, felt the tilt of fate, and pictured the
+          moment your Blessing turns the tide. If you’re ready to prove your
+          worth, the arena is still listening.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4 pt-6">
+          <a
+            href="#rules"
+            class="px-8 py-3 bg-gradient-to-tr from-blue-600 to-purple-600 hover:-translate-y-0.5 transition rounded-lg font-bold text-white shadow-glow focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400/40"
+          >
+            Let's Do It
+          </a>
+          <a
+            href="#lore"
+            class="px-8 py-3 bg-transparent border-2 border-orange-400 hover:bg-orange-500/10 transition rounded-lg font-bold text-orange-400 shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-400/40"
+          >
+            Keep Reading
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ribbon Marquee (between body and footer) -->
+    <section id="ribbon" class="mt-10 mb-8">
+      <div class="max-w-6xl mx-auto px-4">
+        <div
+          class="relative left-1/2 -translate-x-1/2 w-[100vw] rotate-[-1.2deg]"
+        >
+          <div
+            id="marquee-wrap"
+            class="overflow-hidden rounded-2xl border border-purple-400/30 bg-gradient-to-r from-[#0d1022] via-[#111532] to-[#0d1022] shadow-[0_8px_28px_rgba(0,0,0,.35)] py-3"
+            role="region"
+            aria-label="Lore ribbon"
+            tabindex="0"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <!-- Track that scrolls; content is injected by JS -->
+            <div
+              id="marquee-track"
+              class="marquee-track flex items-center gap-12 whitespace-nowrap will-change-transform"
+            >
+              <!-- JS will inject repeated phrases here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer
+      class="max-w-6xl mx-auto px-4 text-center text-sm text-slate-300 my-14"
+      role="contentinfo"
+    >
+      Built for bold tables. Share the page, start a duel, and print the rules
+      for your deck box.
+    </footer>
+
+    <!-- Hidden printable (simplified, fixed-size) -->
+    <div
+      id="print-rules"
+      class="hidden"
+      role="region"
+      aria-label="Printable rules"
+    >
+      <div class="block">
+        <h1>Conquerer’s Duel • Rules</h1>
+        <p>
+          <strong>Format:</strong> Two-player Commander. 100-card singleton.
+          Usual Commander rules except as noted.
+        </p>
+
+        <h2>Rite of Selection • The Blessing (Pre-Game Step)</h2>
+        <ul>
+          <li>
+            <strong
+              >At the start of the game, before drawing opening hands or
+              mulligans</strong
+            >, each player searches their library for any card and exiles it
+            face down as their Blessing, then shuffles. (Only its owner may look
+            at it.)
+          </li>
+          <li>
+            You may <strong>cast your Blessing from exile</strong> by paying its
+            normal costs at a time you could normally cast it. It remains in
+            exile until cast.
+          </li>
+        </ul>
+
+        <h2>The Omen Mulligan • Fate’s Opening</h2>
+        <ul>
+          <li>
+            First draw: <strong>Draw 10, discard to 7</strong>. You may repeat
+            once for free.
+          </li>
+          <li>
+            Then <strong>9 → 7</strong>, <strong>8 → 7</strong>,
+            <strong>7 → 7</strong> and keep.
+          </li>
+        </ul>
+
+        <h2>Tides of Favor • Upkeep Augment</h2>
+        <ul>
+          <li><strong>Behind on land?</strong> Scry 1.</li>
+          <li><strong>Behind on life?</strong> Draw a card.</li>
+          <li><strong>Behind on both?</strong> Scry 1, then draw a card.</li>
+        </ul>
+
+        <h2>First Blood • Lander Bounty</h2>
+        <ul>
+          <li>
+            First player to deal combat damage to an opponent creates a
+            <strong>Lander</strong> token.
+          </li>
+          <li>
+            <em
+              >Lander • “2, T, Sacrifice this: Search your library for a basic
+              land card, put it onto the battlefield tapped, then shuffle.”</em
+            >
+          </li>
+        </ul>
+
+        <h2>Champion’s Recall • Taxless Recast</h2>
+        <ul>
+          <li>
+            The first time you would pay <strong>commander tax</strong>, ignore
+            it. (Once per game.)
+          </li>
+        </ul>
+
+        <h2>Victory</h2>
+        <p>Any standard Commander win condition.</p>
+      </div>
+    </div>
+
+    <!-- PDF library -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Inline JS -->
+    <script>
+      function scrollToId(id) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+
+      function downloadPDF() {
+        const el = document.getElementById("print-rules");
+        el.classList.remove("hidden"); // ensure visible to measure
+
+        const opt = {
+          margin: [10, 10, 12, 10],
+          filename: "Conquerers-Duel_Rules.pdf",
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, backgroundColor: "#ffffff", useCORS: true },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          pagebreak: { mode: ["css", "legacy"] },
+        };
+
+        html2pdf()
+          .set(opt)
+          .from(el)
+          .save()
+          .then(() => {
+            el.classList.add("hidden");
+          });
+      }
+
+      /* -------- Full-width angled ribbon marquee -------- */
+      const phrases = [
+        "Fate favors the daring.",
+        "First blood stirs the heavens.",
+        "Blessings whisper before the battle begins.",
+        "The gods crave an encore.",
+        "Outwit. Outmaneuver. Outlast.",
+      ];
+
+      const SPEED_PX_PER_SEC = 100; // adjust to taste
+
+      const wrap = document.getElementById("marquee-wrap");
+      const track = document.getElementById("marquee-track");
+      const reduceMotion =
+        window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      let startIndex = 0;
+
+      function makeSpan(text) {
+        const s = document.createElement("span");
+        s.className =
+          "text-purple-200/90 font-semibold tracking-wide text-sm sm:text-base";
+        s.textContent = text;
+        return s;
+      }
+      function makeSep() {
+        const s = document.createElement("span");
+        s.className = "mx-6 text-purple-300/60 text-sm sm:text-base";
+        s.textContent = "•";
+        return s;
+      }
+
+      // Build one sequence of phrases starting at startIndex
+      function buildSequence(idx) {
+        const frag = document.createDocumentFragment();
+        for (let i = 0; i < phrases.length; i++) {
+          if (i > 0) frag.appendChild(makeSep());
+          frag.appendChild(makeSpan(phrases[(idx + i) % phrases.length]));
+        }
+        return frag;
+      }
+
+      // Build the track content as TWO copies of the sequence for a seamless loop
+      function buildTrack() {
+        track.innerHTML = "";
+        const seq1 = buildSequence(startIndex);
+        const seq2 = buildSequence(startIndex);
+        track.appendChild(seq1);
+        track.appendChild(makeSep());
+        track.appendChild(seq2);
+        // Clone children once more so the track width ≈ 2x, enabling -50% shift
+        const copy = track.cloneNode(true);
+        while (copy.firstChild) {
+          track.appendChild(copy.firstChild);
+        }
+      }
+
+      // Set animation duration based on content width for consistent speed
+      function setDuration() {
+        const halfWidth = track.scrollWidth / 2; // distance we animate (-50%)
+        const duration = Math.max(halfWidth / SPEED_PX_PER_SEC, 8); // seconds
+        track.style.animationDuration = duration + "s";
+      }
+
+      // Rotate order each time the animation completes one full cycle
+      function onIteration() {
+        startIndex = (startIndex + 1) % phrases.length;
+        buildTrack();
+        setDuration();
+      }
+
+      // Pause/resume on hover/focus
+      function pause() {
+        track.style.animationPlayState = "paused";
+      }
+      function resume() {
+        track.style.animationPlayState = "running";
+      }
+
+      function initRibbon() {
+        if (reduceMotion) {
+          // No scrolling: show one phrase and rotate every 5s
+          track.innerHTML = "";
+          track.appendChild(makeSpan(phrases[startIndex]));
+          let timer = setInterval(() => {
+            startIndex = (startIndex + 1) % phrases.length;
+            track.innerHTML = "";
+            track.appendChild(makeSpan(phrases[startIndex]));
+          }, 5000);
+          wrap.addEventListener("mouseenter", () => clearInterval(timer));
+          wrap.addEventListener("focusin", () => clearInterval(timer));
+          return;
+        }
+        buildTrack();
+        setDuration();
+        track.addEventListener("animationiteration", onIteration);
+
+        wrap.addEventListener("mouseenter", pause);
+        wrap.addEventListener("mouseleave", resume);
+        wrap.addEventListener("focusin", pause);
+        wrap.addEventListener("focusout", resume);
+      }
+
+      /* ---- Make text after "•" in headings regular + italic ---- */
+      function stylizeBulletHeadings(root = document) {
+        const selectors = ["h1", "h2", "h3"];
+        const nodes = root.querySelectorAll(selectors.join(","));
+        nodes.forEach((el) => {
+          if (el.dataset.bulletStyled === "1") return;
+          const raw = el.textContent;
+          if (!raw) return;
+          const i = raw.indexOf("•");
+          if (i === -1) return;
+          const left = raw.slice(0, i).trimEnd();
+          const right = raw.slice(i + 1).trimStart();
+          // Rebuild content safely without innerHTML injection
+          el.textContent = ""; // clear
+          const leftNode = document.createTextNode(left + " ");
+          const bullet = document.createElement("span");
+          bullet.textContent = "•";
+          bullet.setAttribute("aria-hidden", "true");
+          const space = document.createTextNode(" ");
+          const rightSpan = document.createElement("span");
+          rightSpan.className = "after-bullet";
+          rightSpan.textContent = right;
+          el.appendChild(leftNode);
+          el.appendChild(bullet);
+          el.appendChild(space);
+          el.appendChild(rightSpan);
+          el.dataset.bulletStyled = "1";
+        });
+      }
+
+      function onReady() {
+        initRibbon();
+        stylizeBulletHeadings(document);
+        // also apply to printable rules container (so PDF inherits styles)
+        const printRoot = document.getElementById("print-rules");
+        if (printRoot) stylizeBulletHeadings(printRoot);
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", onReady);
+      } else {
+        onReady();
+      }
+    </script>
+  </body>
+</html>

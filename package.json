@@ -1,0 +1,15 @@
+{
+  "name": "conquerers-duel-html",
+  "version": "1.0.0",
+  "description": "A marketing site for Brett Commandeur's fun and heavily house-ruled variant of Commander for Magic: The Gathering.",
+  "main": "index.js",
+  "scripts": {
+    "start": "serve ."
+  },
+  "keywords": [],
+  "author": "Brett Commandeur",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
